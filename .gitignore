@@ -1,0 +1,26 @@
+# User-specific files
+*.user
+*.suo
+*.sln.docstates
+*.sln.docmap
+*.sln.docsettings
+*.slnfilter
+*.slnidb
+*.slnsf
+
+# Build and publish outputs
+bin/
+obj/
+publish/
+
+# ASP.NET temporary files
+Project.lock.json
+Project.deps.json
+project.nuget.cache
+project.lock.json
+project.lock.json
+
+# ASP.NET Core runtime files in self-contained deployments
+*.exe
+*.dll
+Microsoft.NETCore.App/
