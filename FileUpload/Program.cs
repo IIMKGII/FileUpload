@@ -22,7 +22,6 @@ namespace FileUploadServer
             var host = CreateHostBuilder(args).Build();
 
             var url = "http://" + GetLocalIPAddress() + ":7140";
-            //var url = "http://0.0.0.0:7140";
             OpenBrowser(url);
             host.Run();
         }
@@ -73,7 +72,8 @@ namespace FileUploadServer
                     webBuilder.ConfigureKestrel(serverOptions =>
                     {
                         serverOptions.Limits.MaxRequestBodySize = 1073741824;
-                        serverOptions.ListenAnyIP(7140);
+                        //serverOptions.ListenAnyIP(7140);
+                        serverOptions.Listen(IPAddress.Any, 7140);
                     }).UseUrls("http://0.0.0.0:7140");
 
                     webBuilder.Configure(app =>
@@ -314,9 +314,9 @@ namespace FileUploadServer
 
                                 if (localIpAddress != null && localIpAddress.StartsWith("::ffff:"))
                                 {
-                                    localIpAddress = "http://" + localIpAddress.Substring(7) + ":7140";
+                                    localIpAddress = localIpAddress.Substring(7);
                                 }
-
+                                localIpAddress = "http://" + localIpAddress + ":7140";
                                 using (var qrGenerator = new QRCodeGenerator())
                                 {
                                     var qrCodeData = qrGenerator.CreateQrCode(localIpAddress, QRCodeGenerator.ECCLevel.Q);
