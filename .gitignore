@@ -12,6 +12,7 @@
 bin/
 obj/
 publish/
+.vs/
 
 # ASP.NET temporary files
 Project.lock.json

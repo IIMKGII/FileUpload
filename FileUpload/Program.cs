@@ -43,7 +43,11 @@ namespace FileUploadServer
                         {
                             endpoints.MapGet("/", async context =>
                             {
-                                string html = @"<!DOCTYPE html>
+                                string html = @"
+<!DOCTYPE html>
+<html>
+<head>
+    <title>File Upload Server</title>
     <style>
         form {
             display: flex;
@@ -51,13 +55,13 @@ namespace FileUploadServer
             align-items: center;
             padding: 20px;
         }
-        
+
         input[type=""file""] {
             margin-bottom: 10px;
             width: 100%;
             max-width: 400px;
         }
-        
+
         button {
             padding: 10px 20px;
             background-color: #007bff;
@@ -65,42 +69,105 @@ namespace FileUploadServer
             border: none;
             cursor: pointer;
         }
-        
+
         button:hover {
             background-color: #0056b3;
         }
-        
+
         .shutdown-button {
             margin-top: 20px;
             padding: 10px 20px;
             background-color: #dc3545;
         }
+
+        .progress-container {
+            width: 100%;
+            height: 25px;
+            background-color: #e0e0e0;
+            border-radius: 5px;
+            margin-top: 10px;
+        }
+
+        .progress-bar {
+            height: 100%;
+            width: 0%;
+            border-radius: 5px;
+            transition: width 0.3s ease;
+        }
     </style>
-    <html>
-    <head>
-        <title>File Upload Server</title>
-    </head>
-    <body>
-        <h1>File Upload Server</h1>
-        <form action='/upload' method='post' enctype='multipart/form-data'>
-            <input type='file' name='files' multiple />
-            <button type='submit'>Upload</button>
-        </form>
-        <button class='shutdown-button' onclick='shutdownServer()'>Shutdown Server</button>
-        
-        <script>
-            async function shutdownServer() {
-                const response = await fetch('/shutdown', { method: 'POST' });
-                if (response.ok) {
-                    alert('Server is shutting down...');
-                    window.location.href = '/';
-                } else {
-                    alert('Failed to shutdown server.');
-                }
+</head>
+<body>
+    <h1>File Upload Server</h1>
+    <form action='/upload' method='post' enctype='multipart/form-data'>
+        <input type='file' name='files' multiple />
+        <button type='submit'>Upload</button>
+    </form>
+    <button class='shutdown-button' onclick='shutdownServer()'>Shutdown Server</button>
+    <div class=""progress-container"">
+        <div id=""progress-bar"" class=""progress-bar""></div>
+    </div>
+
+    <script>
+        async function shutdownServer() {
+            const response = await fetch('/shutdown', { method: 'POST' });
+            if (response.ok) {
+                alert('Server is shutting down...');
+                window.location.href = '/';
+            } else {
+                alert('Failed to shutdown server.');
             }
-        </script>
-    </body>
-    </html>";
+        }
+
+        async function uploadFile(files) {
+            const progressBar = document.getElementById('progress-bar');
+            const formData = new FormData();
+            for (let file of files) {
+                formData.append('files', file);
+            }
+
+            const xhr = new XMLHttpRequest();
+            xhr.open('POST', '/upload', true);
+            xhr.upload.onprogress = (event) => {
+                if (event.lengthComputable) {
+                    const percentComplete = (event.loaded / event.total) * 100;
+                    progressBar.style.width = `${percentComplete}%`;
+
+                    // Change color based on progress
+                    if (percentComplete < 33) {
+                        progressBar.style.backgroundColor = '#f00'; // Red for 0-33%
+                    } else if (percentComplete < 66) {
+                        progressBar.style.backgroundColor = '#ff0'; // Yellow for 34-66%
+                    } else {
+                        progressBar.style.backgroundColor = '#0f0'; // Green for 67-100%
+                    }
+                }
+            };
+
+            xhr.onload = () => {
+                if (xhr.status === 200) {
+                    alert('File upload successful.');
+                    progressBar.style.width = '0%';
+                    progressBar.style.backgroundColor = '#0f0'; // Reset color after success
+                } else {
+                    alert('Error during upload');
+                }
+            };
+
+            xhr.send(formData);
+        }
+
+        document.querySelector('form').addEventListener('submit', async (event) => {
+            event.preventDefault();
+            const files = event.target.elements['files'].files;
+            if (files.length > 0) {
+                uploadFile(files);
+            } else {
+                alert('No files selected');
+            }
+        });
+    </script>
+</body>
+</html>";
 
                                 context.Response.ContentType = "text/html";
                                 await context.Response.WriteAsync(html);
