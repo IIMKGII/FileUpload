@@ -4,9 +4,14 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Http.Features;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using QRCoder;
+using System.Drawing;
 using System;
 using System.IO;
 using System.Threading.Tasks;
+using System.Diagnostics;
+using System.Net.Sockets;
+using System.Net;
 
 namespace FileUploadServer
 {
@@ -14,7 +19,42 @@ namespace FileUploadServer
     {
         public static void Main(string[] args)
         {
-            CreateHostBuilder(args).Build().Run();
+            var host = CreateHostBuilder(args).Build();
+
+            var url = "http://" + GetLocalIPAddress() + ":7140";
+            //var url = "http://0.0.0.0:7140";
+            OpenBrowser(url);
+            host.Run();
+        }
+
+        public static string GetLocalIPAddress()
+        {
+            var host = Dns.GetHostEntry(Dns.GetHostName());
+            foreach (var ip in host.AddressList)
+            {
+                if (ip.AddressFamily == AddressFamily.InterNetwork && ip.ToString().StartsWith("192"))
+                {
+                    return ip.ToString();
+                }
+            }
+            throw new Exception("No network adapters with an IPv4 address in the system!");
+        }
+
+        private static void OpenBrowser(string url)
+        {
+            try
+            {
+                Process.Start(new ProcessStartInfo
+                {
+                    FileName = url,
+                    UseShellExecute = true
+                });
+            }
+            catch (Exception ex)
+            {
+                // Handle exceptions (e.g., browser not found)
+                Console.WriteLine($"Failed to open browser: {ex.Message}");
+            }
         }
 
         public static IHostBuilder CreateHostBuilder(string[] args) =>
@@ -105,6 +145,10 @@ namespace FileUploadServer
     <button class='shutdown-button' onclick='shutdownServer()'>Shutdown Server</button>
     <div class=""progress-container"">
         <div id=""progress-bar"" class=""progress-bar""></div>
+    </div>
+    <div class=""qr-container"">
+        <h3>Connect with this QR Code:</h3>
+        <img src='/generate-qr?ip={localIpAddress}' alt='QR Code for Server IP' />
     </div>
 
     <script>
@@ -262,6 +306,27 @@ namespace FileUploadServer
 
                                 context.Response.ContentType = "text/html";
                                 await context.Response.WriteAsync(htmlResponse);
+                            });
+
+                            endpoints.MapGet("/generate-qr", async context =>
+                            {
+                                string localIpAddress = context.Connection.RemoteIpAddress.ToString();
+
+                                if (localIpAddress != null && localIpAddress.StartsWith("::ffff:"))
+                                {
+                                    localIpAddress = "http://" + localIpAddress.Substring(7) + ":7140";
+                                }
+
+                                using (var qrGenerator = new QRCodeGenerator())
+                                {
+                                    var qrCodeData = qrGenerator.CreateQrCode(localIpAddress, QRCodeGenerator.ECCLevel.Q);
+                                    using (var qrCode = new BitmapByteQRCode(qrCodeData))
+                                    {
+                                        var qrCodeImage = qrCode.GetGraphic(10); // Adjust the size as needed
+                                        context.Response.ContentType = "image/png";
+                                        await context.Response.Body.WriteAsync(qrCodeImage, 0, qrCodeImage.Length);
+                                    }
+                                }
                             });
                         });
                     });
