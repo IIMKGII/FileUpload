@@ -1,0 +1,88 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Files</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f4f4f9;
+            color: #333;
+        }
+
+        h1 {
+            text-align: center;
+            margin: 20px 0;
+        }
+
+        .file-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+            gap: 15px;
+            padding: 20px;
+        }
+
+        .file-card {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            background: #fff;
+            border: 1px solid #ccc;
+            border-radius: 8px;
+            padding: 10px;
+            text-align: center;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+            transition: transform 0.2s;
+        }
+
+        .file-preview img {
+            width: 100px;
+            height: 100px;
+            object-fit: cover;
+            border-radius: 5px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            margin-bottom: 10px;
+        }
+
+        .file-card:hover {
+            transform: scale(1.05);
+        }
+
+        .file-preview img {
+            max-width: 100px;
+            max-height: 100px;
+            margin-bottom: 10px;
+        }
+
+        .file-preview .icon {
+            font-size: 50px;
+            color: #666;
+            margin-bottom: 10px;
+        }
+
+        .download-btn {
+            text-decoration: none;
+            padding: 5px 10px;
+            background: #007bff;
+            color: #fff;
+            border-radius: 5px;
+            font-size: 14px;
+            transition: background 0.2s;
+        }
+
+            .download-btn:hover {
+                background: #0056b3;
+            }
+
+    </style>
+</head>
+<body>
+    <h1>Available Files</h1>
+    <div class="file-container">
+        {{FilePreviews}}
+    </div>
+</body>
+</html>
